@@ -51,11 +51,60 @@ enable_screen_buffer = not (is_vt or term == "linux")
 # color support is after VT241
 enable_color = not is_vt or int(re.search(r"\d+", is_vt.group()).group()) >= 241
 
+import platform
+import subprocess
+
 enable_sound = '--no-sound' not in sys.argv
 
+def play_sound(path):
+    system = platform.system()
+    try:
+        if system == "Darwin":  # macOS
+            subprocess.run(["afplay", path], check=False)
+        elif system == "Linux":
+            if path.lower().endswith(".wav"):
+                subprocess.run(["aplay", path], check=False)
+            else:
+                subprocess.run(["mpg123", path], check=False)
+        elif system == "Windows":
+            import winsound
+            if path.lower().endswith(".wav"):
+                winsound.PlaySound(path, winsound.SND_FILENAME)
+            else:
+                # No native mp3 support; skip or add a dependency if needed
+                pass
+        else:
+            print(f"Sound unsupported on {system}", file=sys.stderr)
+    except FileNotFoundError:
+        print(f"Audio player not found for OS {system}; cannot play {path}", file=sys.stderr)
+    except Exception as e:
+        print(f"Failed to play sound: {e}", file=sys.stderr)
+
+def play_sound(path):
+    system = platform.system()
+    try:
+        if system == "Darwin":  # macOS
+            subprocess.run(["afplay", path], check=False)
+        elif system == "Linux":
+            # try aplay (for WAV) or mpg123 (for mp3) if installed
+            if path.lower().endswith(".wav"):
+                subprocess.run(["aplay", path], check=False)
+            else:
+                subprocess.run(["mpg123", path], check=False)
+        elif system == "Windows":
+            import winsound
+            if path.lower().endswith(".wav"):
+                winsound.PlaySound(path, winsound.SND_FILENAME)
+            else:
+                # fallback: no built-in mp3 support; user would need a library
+                pass
+        else:
+            print(f"Sound unsupported on {system}", file=sys.stderr)
+    except FileNotFoundError:
+        # external player not installed
+        print(f"Could not play sound; required player not found for OS {system}", file=sys.stderr)
+
 enable_stay = '--no-stay' not in sys.argv
-if enable_sound:
-    import playsound
 
 term_columns, term_lines = 0, 0
 if is_vt:
@@ -868,7 +917,8 @@ while(lyrics[currentLyric].mode != 9):
             y = 0
         elif(lyrics[currentLyric].mode == 4):
             if enable_sound:
-                playsound.playsound(str(Path.cwd() / 'sa1.mp3'), False)
+                # Non-blocking playback: spawn in a thread so it doesn't stall lyric timing
+                threading.Thread(target=play_sound, args=(str(Path.cwd() / 'sa1.mp3'),), daemon=True).start()
         elif(lyrics[currentLyric].mode == 5):
             th_credit = thread_credits()
             th_credit.daemon = True
@@ -880,6 +930,10 @@ while(lyrics[currentLyric].mode != 9):
 end_draw()
 
 if enable_sound:
-    while True:
-        time.sleep(600)
+    try:
+        # keep the program alive so sound (if any) can finish; sleep in long increments
+        while True:
+            time.sleep(60)
+    except KeyboardInterrupt:
+        pass
 
