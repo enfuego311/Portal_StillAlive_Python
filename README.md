@@ -38,7 +38,7 @@ python3 still_alive_credit.py --no-sound
 A demo of the credit song 'Still Alive' of Portal 1 written in Python, running
 in text terminal.
 
-## Dependency
+## Dependencies
 
 `still_alive_credit.py` is written with Python 3. In most cases the following
 `pip` should be `pip3` command.
@@ -68,12 +68,51 @@ TERM=vt100 python3 still_alive_credit.py
 
 You can use the `--no-stay` option to automatically exit after the music finishes playing. By default, it remains on the playback screen. You can also press `Ctrl+C` to exit.
 
-It's able to use `--no-sound` option to run the script without playing sound. In this
+It's able to use the `--no-sound` option to run the script without playing sound. In this
 case, the script only depends on Python standard library:
 
 ```
 python3 still_alive_credit.py --no-sound
 ```
+
+## macOS Setup
+
+For macOS users, the script now uses the built-in `afplay` command for audio playback, eliminating the need for external dependencies.
+
+### Quick Setup (macOS)
+
+1. **Run the setup script:**
+   ```bash
+   ./setup_macos.sh
+   ```
+
+2. **Run the credits:**
+   ```bash
+   python3 still_alive_credit.py
+   ```
+
+### Manual Setup (macOS)
+
+1. **Ensure Python 3.6+ is installed:**
+   ```bash
+   python3 --version
+   ```
+
+2. **Verify audio file exists:**
+   ```bash
+   ls -la sa1.mp3
+   ```
+
+3. **Test audio playback:**
+   ```bash
+   afplay sa1.mp3
+   ```
+
+### Troubleshooting (macOS)
+
+- **No audio:** Ensure `sa1.mp3` is in the project directory
+- **Terminal issues:** Use Terminal.app or iTerm2 for best compatibility
+- **Permission errors:** Run `chmod +x setup_macos.sh` if needed
 
 ## Linux 运行效果 / Snapshot on Linux
 

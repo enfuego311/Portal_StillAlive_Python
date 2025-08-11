@@ -57,52 +57,46 @@ import subprocess
 enable_sound = '--no-sound' not in sys.argv
 
 def play_sound(path):
+    """
+    Play audio file using native system audio players.
+    Optimized for macOS, Linux, and Windows.
+    """
     system = platform.system()
     try:
         if system == "Darwin":  # macOS
-            subprocess.run(["afplay", path], check=False)
+            # Use afplay for macOS - it's built-in and handles most audio formats
+            subprocess.run(["afplay", str(path)], check=False)
         elif system == "Linux":
-            if path.lower().endswith(".wav"):
-                subprocess.run(["aplay", path], check=False)
+            # Try multiple audio players in order of preference
+            players = ["mpg123", "mpg321", "aplay"]
+            for player in players:
+                try:
+                    if player in ["mpg123", "mpg321"]:
+                        subprocess.run([player, str(path)], check=False)
+                        break
+                    elif player == "aplay" and str(path).lower().endswith(".wav"):
+                        subprocess.run([player, str(path)], check=False)
+                        break
+                except FileNotFoundError:
+                    continue
             else:
-                subprocess.run(["mpg123", path], check=False)
+                print(f"Audio player not found. Install mpg123 or mpg321 for MP3 support.", file=sys.stderr)
         elif system == "Windows":
             import winsound
-            if path.lower().endswith(".wav"):
-                winsound.PlaySound(path, winsound.SND_FILENAME)
+            if str(path).lower().endswith(".wav"):
+                winsound.PlaySound(str(path), winsound.SND_FILENAME)
             else:
-                # No native mp3 support; skip or add a dependency if needed
-                pass
+                # For MP3 on Windows, try using built-in media player
+                try:
+                    os.startfile(str(path))
+                except AttributeError:
+                    print(f"MP3 playback not supported on Windows. Convert to WAV or install a media player.", file=sys.stderr)
         else:
             print(f"Sound unsupported on {system}", file=sys.stderr)
     except FileNotFoundError:
         print(f"Audio player not found for OS {system}; cannot play {path}", file=sys.stderr)
     except Exception as e:
         print(f"Failed to play sound: {e}", file=sys.stderr)
-
-def play_sound(path):
-    system = platform.system()
-    try:
-        if system == "Darwin":  # macOS
-            subprocess.run(["afplay", path], check=False)
-        elif system == "Linux":
-            # try aplay (for WAV) or mpg123 (for mp3) if installed
-            if path.lower().endswith(".wav"):
-                subprocess.run(["aplay", path], check=False)
-            else:
-                subprocess.run(["mpg123", path], check=False)
-        elif system == "Windows":
-            import winsound
-            if path.lower().endswith(".wav"):
-                winsound.PlaySound(path, winsound.SND_FILENAME)
-            else:
-                # fallback: no built-in mp3 support; user would need a library
-                pass
-        else:
-            print(f"Sound unsupported on {system}", file=sys.stderr)
-    except FileNotFoundError:
-        # external player not installed
-        print(f"Could not play sound; required player not found for OS {system}", file=sys.stderr)
 
 enable_stay = '--no-stay' not in sys.argv
 

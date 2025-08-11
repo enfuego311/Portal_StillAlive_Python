@@ -1,0 +1,16 @@
+# Portal Still Alive Credits - Python Dependencies
+# This project works with Python 3.6+ and uses native system audio players
+
+# No external Python packages required for basic functionality
+# The script uses native system audio players:
+# - macOS: afplay (built-in)
+# - Linux: mpg123, mpg321, or aplay
+# - Windows: winsound (built-in) or system media player
+
+# Optional: If you want to use playsound library instead of native players
+# playsound>=1.2.2
+
+# For development/testing (optional)
+# pytest>=6.0.0
+# black>=21.0.0
+# flake8>=3.8.0 
